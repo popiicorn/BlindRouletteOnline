@@ -5,7 +5,6 @@ using UnityEngine.SceneManagement;
 public class GameManager : MonoBehaviour
 {
     public CameraShake cameraShake;
-    private bool isSetup = false; // クラスの先頭あたりに追加
 
     [Header("ゲーム設定")]
     public int maxTurns = 5;
@@ -13,8 +12,11 @@ public class GameManager : MonoBehaviour
 
     [Header("プレイヤーの情報")]
     public PlayerController player;
-    public int hostMoney = 0;
-    public int playerTotalMoney = 0; // ★ここに移動しました！
+
+    // ★ static にすることで、シーンがリロードされてもデータが消えずに保持されます
+    public static int hostMoney = 0;
+    public static int playerTotalMoney = 0;
+    public static int currentTurn = 1;
 
     [Header("出現するお宝の種類")]
     public TreasureData[] availableTreasures;
@@ -34,48 +36,35 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI playerMoneyText;
     public TextMeshProUGUI hostMoneyText;
 
+    [Header("部屋選択UIの設定（GameScene内）")]
+    public GameObject selectionPanel; // 部屋を選ぶボタンが乗っているパネル
+    public TextMeshProUGUI roleText;   // 「爆発させる部屋を選んでください」などのテキスト
+
     [Header("爆発エフェクト")]
     public GameObject explosionPrefab;
     public Transform[] roomPositions;
 
-    private int currentTurn = 0;
     private float currentTime;
     private bool isTimerRunning = false;
-    private int doubleRoom = 0;
+    private bool isSelectingRoom = false;
+    private static int selectedExplodeRoom = 1;
 
     [Header("扉の設定")]
     public GameObject[] doorObjects;
 
-    public static GameManager Instance;
-
     void Awake()
     {
-        if (Instance == null)
-        {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
-            Destroy(gameObject);
-        }
+        // 今回は DontDestroyOnLoad を使わず、シーンごとに GameManager をクリーンに動かします
     }
 
     void Start()
     {
-        /* 
-        最初のシーンで起動したとき、既にGameSceneなら即セットアップ
-        if (SceneManager.GetActiveScene().name == "GameScene")
-        {
-            SetupGameScene();
-        }
-        */
+        SetupGameScene();
     }
 
     void Update()
     {
-        // GameScene以外、またはタイマー停止中は処理しない
-        if (SceneManager.GetActiveScene().name != "GameScene" || !isTimerRunning) return;
+        if (isSelectingRoom || !isTimerRunning) return;
 
         currentTime -= Time.deltaTime;
 
@@ -89,33 +78,8 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // シーン切り替え時に自動実行される
-    void OnEnable() { SceneManager.sceneLoaded += OnSceneLoaded; }
-    void OnDisable() { SceneManager.sceneLoaded -= OnSceneLoaded; }
-
-    void OnSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        if (scene.name == "GameScene")
-        {
-            isSetup = false;
-            SetupGameScene();
-        }
-        // ★ここを追加：LobbySceneに来たら自動でリセットする
-        else if (scene.name == "LobbyScene")
-        {
-            currentTurn = 0;
-            playerTotalMoney = 0;
-            hostMoney = 0;
-            isSetup = false;
-            Debug.Log("ロビーに戻ったのでゲームデータをリセットしました！");
-        }
-    }
-
     void SetupGameScene()
     {
-        if (isSetup) return; // すでにセットアップ済みなら何もしない
-        isSetup = true;
-
         // 1. 各種UIやオブジェクトの再検索
         timerText = GameObject.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
         playerMoneyText = GameObject.Find("PlayerMoneyText")?.GetComponent<TextMeshProUGUI>();
@@ -131,40 +95,53 @@ public class GameManager : MonoBehaviour
         GameObject sp = GameObject.Find("SpawnPoint");
         if (sp != null) spawnPoint = sp.transform;
 
-        // ★追加：扉のリストを再検索する
-        // 扉オブジェクトに「Door」というタグを付けておくのが一番安全です！
         GameObject[] foundDoors = GameObject.FindGameObjectsWithTag("Door");
         if (foundDoors.Length > 0)
         {
             doorObjects = foundDoors;
         }
-        else
-        {
-            Debug.LogError("タグ 'Door' が付いたオブジェクトが見つかりません！");
-        }
 
-        // ゲーム開始
+        // 部屋選択ボタンの自動配線
+        SetupRoomButtons();
+
+        // ゲーム開始フェーズへ
         treasuresToSpawnNextTurn = initialSpawnCount;
         StartNextTurn();
     }
 
     void StartNextTurn()
     {
-        currentTurn++;
-        Debug.Log("★現在のターン数: " + currentTurn); // これで確認します！
+        Debug.Log("★現在のターン数: " + currentTurn);
 
-        if (currentTurn > maxTurns)
+        isSelectingRoom = true;
+        isTimerRunning = false;
+
+        // UI（パネルとテキスト）を表示する
+        if (selectionPanel != null) selectionPanel.SetActive(true);
+        if (roleText != null)
         {
-            Debug.Log("★最大ターンを超えたのでリザルトへ行きます！");
-            CheckTurnResult();
-            return;
+            roleText.gameObject.SetActive(true);
+            roleText.text = "爆発させる部屋を選んでください";
         }
+    }
 
-        // ...以下、宝生成などの処理
-    
+    // ボタンから自動、または手動で呼ばれる
+    public void OnRoomSelectedButton(int roomNumber)
+    {
+        if (!isSelectingRoom) return;
 
-    doubleRoom = Random.Range(1, 6);
+        selectedExplodeRoom = roomNumber;
+        Debug.Log($"仕掛け人が部屋 {roomNumber} を選択しました！ゲームスタート！");
 
+        if (selectionPanel != null) selectionPanel.SetActive(false);
+        if (roleText != null) roleText.gameObject.SetActive(false);
+
+        SpawnTreasuresAndStartGame();
+        isSelectingRoom = false;
+    }
+
+    void SpawnTreasuresAndStartGame()
+    {
         for (int i = 0; i < treasuresToSpawnNextTurn; i++)
         {
             float randomX = Random.Range(-spawnRadiusX, spawnRadiusX);
@@ -174,11 +151,12 @@ public class GameManager : MonoBehaviour
             Vector3 spawnPos = (spawnPoint != null ? spawnPoint.position : Vector3.zero) + new Vector3(randomX, randomY, randomZ);
             TreasureData selectedTreasure = ChooseRandomTreasure();
 
-            GameObject boxObj = Instantiate(selectedTreasure.prefab, spawnPos, Quaternion.identity);
-            TreasureBox box = boxObj.GetComponent<TreasureBox>();
-
-            // 生成された宝箱を「ロビー（0）」として登録（これで最初の金額表示が正しくなります）
-            box.UpdateRoom(0);
+            if (selectedTreasure != null && selectedTreasure.prefab != null)
+            {
+                GameObject boxObj = Instantiate(selectedTreasure.prefab, spawnPos, Quaternion.identity);
+                TreasureBox box = boxObj.GetComponent<TreasureBox>();
+                if (box != null) box.UpdateRoom(0);
+            }
         }
 
         treasuresToSpawnNextTurn = additionalSpawnPerTurn;
@@ -189,67 +167,41 @@ public class GameManager : MonoBehaviour
     void TimeUp()
     {
         isTimerRunning = false;
-        timerText.text = "審判の刻...！";
+        if (timerText != null) timerText.text = "審判の刻...！";
 
-        // 1. 爆発する部屋を「部屋1」に固定する
         RoomDetector explodeRoomObj = null;
         RoomDetector[] allRooms = FindObjectsOfType<RoomDetector>();
 
         foreach (var room in allRooms)
         {
-            if (room.roomNumber == 1) // 部屋番号が1のものを見つける
+            if (room.roomNumber == selectedExplodeRoom)
             {
                 explodeRoomObj = room;
                 break;
             }
         }
 
-        // もし部屋1が見つからない場合を考慮して、念のためランダムも残す
-        if (explodeRoomObj == null)
+        if (explodeRoomObj == null && allRooms.Length > 0)
         {
-            int randomIndex = Random.Range(0, allRooms.Length);
-            explodeRoomObj = allRooms[randomIndex];
+            explodeRoomObj = allRooms[0];
         }
 
-        // 2. 演出付き爆発コルーチンを開始
         StartCoroutine(ExecuteExplosionSequence(explodeRoomObj));
-
-
-        /*↓ランダム
-        isTimerRunning = false;
-        timerText.text = "審判の刻...！";
-
-        // 1. 爆発する部屋を決める
-        RoomDetector[] allRooms = FindObjectsOfType<RoomDetector>();
-        int randomIndex = Random.Range(0, allRooms.Length);
-        RoomDetector explodeRoomObj = allRooms[randomIndex];
-
-        // 2. 演出付き爆発コルーチンを開始（完了後にシーン遷移させる）
-        StartCoroutine(ExecuteExplosionSequence(explodeRoomObj));
-        */
     }
 
-    // 演出コルーチンにシーン遷移の判定を追加
-    // これが「新しい方」です。この1つだけが存在するようにしてください。
     private System.Collections.IEnumerator ExecuteExplosionSequence(RoomDetector room)
     {
-        // A. 扉を全部閉じる
         foreach (GameObject door in doorObjects)
         {
             if (door != null)
             {
                 Animator anim = door.GetComponentInChildren<Animator>();
-                if (anim != null)
-                {
-                    // Trigger ではなく Bool で「閉まっている状態」をONにする
-                    anim.SetBool("Closed", true);
-                }
+                if (anim != null) anim.SetBool("Closed", true);
             }
         }
 
         yield return new WaitForSeconds(1.0f);
 
-        // B. 爆発する部屋と一致する扉だけを点滅させる
         bool foundExplodingDoor = false;
         foreach (GameObject door in doorObjects)
         {
@@ -263,54 +215,44 @@ public class GameManager : MonoBehaviour
 
         if (foundExplodingDoor) yield return new WaitForSeconds(1.8f);
 
-        // C. 爆発処理
-        Instantiate(explosionPrefab, room.transform.position, Quaternion.identity);
+        if (room != null && explosionPrefab != null)
+        {
+            Instantiate(explosionPrefab, room.transform.position, Quaternion.identity);
+        }
         if (cameraShake != null) cameraShake.PlayShake(0.5f, 0.3f);
 
-        // 1. プレイヤーの判定（部屋またはロビーにいる場合）
-        if (player != null && (player.currentRoom == room.roomNumber || player.currentRoom == 0))
+        if (player != null && room != null && (player.currentRoom == room.roomNumber || player.currentRoom == 0))
         {
             playerTotalMoney = 0;
             player.UpdateAnimation(false, true);
-            Debug.Log("爆発に巻き込まれた！所持金が没収されました！");
 
             Rigidbody rb = player.GetComponent<Rigidbody>();
             if (rb != null)
             {
-                // 物理演算を有効にして真上に力を加える
                 rb.isKinematic = false;
                 rb.AddForce(Vector3.up * 15f + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-5f, 5f)), ForceMode.Impulse);
             }
         }
 
-        // 2. お宝の判定
         TreasureBox[] allTreasures = FindObjectsOfType<TreasureBox>();
         foreach (TreasureBox treasure in allTreasures)
         {
-            if (treasure.IsCarried()) treasure.currentRoom = player.currentRoom;
+            if (treasure == null) continue;
+            if (treasure.IsCarried() && player != null) treasure.currentRoom = player.currentRoom;
 
-            // 爆発対象：指定の部屋、またはロビー（部屋0）にいる場合
-            if (treasure.currentRoom == room.roomNumber || treasure.currentRoom == 0)
+            if (room != null && (treasure.currentRoom == room.roomNumber || treasure.currentRoom == 0))
             {
-                // ★追加：吹き飛ばす処理
                 Rigidbody rb = treasure.GetComponent<Rigidbody>();
                 if (rb != null)
                 {
                     rb.isKinematic = false;
-                    // 爆発の力を加える（プレイヤーより少し強めに飛ばすと面白いです）
                     rb.AddForce(Vector3.up * 15f + new Vector3(Random.Range(-5f, 5f), 0, Random.Range(-5f, 5f)), ForceMode.Impulse);
                 }
-
-                // 吹き飛ばした後、少し遅らせて消滅させる（吹き飛ぶ見た目を作るため）
-                //Destroy(treasure.gameObject, 1.0f);
-                Debug.Log("宝箱が爆風で吹き飛んだ！");
             }
-            // 爆発しない部屋にいる宝は獲得
-            else if (treasure.currentRoom == player.currentRoom)
+            else if (player != null && treasure.currentRoom == player.currentRoom && treasure.data != null)
             {
                 playerTotalMoney += treasure.data.moneyAmount;
                 Destroy(treasure.gameObject);
-                Debug.Log("宝箱を獲得！");
             }
             else
             {
@@ -327,21 +269,14 @@ public class GameManager : MonoBehaviour
 
     private TreasureData ChooseRandomTreasure()
     {
-        // ★修正：配列が空ならエラーを回避し、デバッグログを出す
-        if (availableTreasures == null || availableTreasures.Length == 0)
-        {
-            Debug.LogError("お宝データが設定されていません！インスペクターを確認してください。");
-            return null; // または適当な代替品を返す
-        }
+        if (availableTreasures == null || availableTreasures.Length == 0) return null;
 
         int totalWeight = 0;
         foreach (TreasureData treasure in availableTreasures)
         {
-            // データがnullでないか確認
             if (treasure != null) totalWeight += treasure.spawnWeight;
         }
 
-        // 重みが0だった場合の回避
         if (totalWeight <= 0) return availableTreasures[0];
 
         int randomValue = Random.Range(0, totalWeight);
@@ -374,37 +309,55 @@ public class GameManager : MonoBehaviour
         }
     }
 
-
-
-    // ゲーム開始ボタンが押された時などに呼ぶ
-    public void StartGameFromSelection()
-    {
-        isSetup = false; // ここでリセット！
-        currentTurn = 0;
-        playerTotalMoney = 0;
-
-        // ターンをカウントアップして、GameSceneへ移動する
-        // currentTurn++; // ターンを進める
-        SceneManager.LoadScene("GameScene");
-    }
-
     void CheckTurnResult()
     {
-        if (currentTurn >= maxTurns)
+        currentTurn++;
+
+        if (currentTurn > maxTurns)
         {
-            // 5ターン終了！リザルトへ
             SceneManager.LoadScene("ResultScene");
         }
         else
         {
-            // 抽選へ
-            SceneManager.LoadScene("SelectionScene");
+            SceneManager.LoadScene("GameScene");
         }
     }
 
-    // GameManager.cs に追加
+    void SetupRoomButtons()
+    {
+        if (selectionPanel == null) return;
+
+        UnityEngine.UI.Button[] buttons = selectionPanel.GetComponentsInChildren<UnityEngine.UI.Button>(true);
+
+        foreach (var btn in buttons)
+        {
+            btn.onClick.RemoveAllListeners();
+
+            int roomNumber = 1;
+            if (btn.name.Contains("1")) roomNumber = 1;
+            else if (btn.name.Contains("2")) roomNumber = 2;
+            else if (btn.name.Contains("3")) roomNumber = 3;
+            else if (btn.name.Contains("4")) roomNumber = 4;
+
+            btn.onClick.AddListener(() => OnRoomSelectedButton(roomNumber));
+        }
+    }
+
     public int GetFinalPlayerMoney()
     {
         return playerTotalMoney;
+    }
+
+    public void SetSelectedExplodeRoom(int roomNumber)
+    {
+        selectedExplodeRoom = roomNumber;
+    }
+
+    public void StartGameFromSelection()
+    {
+        currentTurn = 1;
+        playerTotalMoney = 0;
+        hostMoney = 0;
+        SceneManager.LoadScene("GameScene");
     }
 }

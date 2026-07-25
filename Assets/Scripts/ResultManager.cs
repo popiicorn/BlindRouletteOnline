@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class ResultManager : MonoBehaviour
 {
@@ -7,15 +8,18 @@ public class ResultManager : MonoBehaviour
 
     void Start()
     {
-        // GameManager から結果を取得して表示
-        int finalMoney = GameManager.Instance.GetFinalPlayerMoney();
-        resultText.text = $"今回の獲得金額: {finalMoney.ToString("#,0")}円";
+        // GameManager から結果を取得して表示（FindObjectOfTypeに変更）
+        GameManager gm = FindObjectOfType<GameManager>();
+        int finalMoney = (gm != null) ? gm.GetFinalPlayerMoney() : 0;
+
+        if (resultText != null)
+        {
+            resultText.text = $"今回の獲得金額: {finalMoney.ToString("#,0")}円";
+        }
     }
 
-    // 「タイトルに戻る」や「もう一度遊ぶ」ボタン用
     public void GoToTitle()
     {
-        // 必要ならここで GameManager を破棄する処理を入れてもOK
-        UnityEngine.SceneManagement.SceneManager.LoadScene("TitleScene");
+        SceneManager.LoadScene("TitleScene");
     }
 }
