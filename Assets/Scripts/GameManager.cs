@@ -13,10 +13,9 @@ public class GameManager : MonoBehaviour
     [Header("プレイヤーの情報")]
     public PlayerController player;
 
-    // ★ static にすることで、シーンがリロードされてもデータが消えずに保持されます
     public static int hostMoney = 0;
     public static int playerTotalMoney = 0;
-    public static int currentTurn = 1;
+    public static int currentTurn = 1; // 現在のターン数
 
     [Header("出現するお宝の種類")]
     public TreasureData[] availableTreasures;
@@ -35,10 +34,11 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI timerText;
     public TextMeshProUGUI playerMoneyText;
     public TextMeshProUGUI hostMoneyText;
+    public TextMeshProUGUI turnText; // ★追加：ターン数表示用テキスト
 
     [Header("部屋選択UIの設定（GameScene内）")]
-    public GameObject selectionPanel; // 部屋を選ぶボタンが乗っているパネル
-    public TextMeshProUGUI roleText;   // 「爆発させる部屋を選んでください」などのテキスト
+    public GameObject selectionPanel;
+    public TextMeshProUGUI roleText;
 
     [Header("爆発エフェクト")]
     public GameObject explosionPrefab;
@@ -54,7 +54,6 @@ public class GameManager : MonoBehaviour
 
     void Awake()
     {
-        // 今回は DontDestroyOnLoad を使わず、シーンごとに GameManager をクリーンに動かします
     }
 
     void Start()
@@ -80,11 +79,21 @@ public class GameManager : MonoBehaviour
 
     void SetupGameScene()
     {
-        // 1. 各種UIやオブジェクトの再検索
+        // ★1. ロビーで設定した最大ターン数を読み込む
+        maxTurns = PlayerPrefs.GetInt("SettingMaxTurns", 5);
+
+        // ★2. UIテキストを自動検索
         timerText = GameObject.Find("TimerText")?.GetComponent<TextMeshProUGUI>();
         playerMoneyText = GameObject.Find("PlayerMoneyText")?.GetComponent<TextMeshProUGUI>();
         hostMoneyText = GameObject.Find("HostMoneyText")?.GetComponent<TextMeshProUGUI>();
+        turnText = GameObject.Find("TurnText")?.GetComponent<TextMeshProUGUI>(); // ターン表示用
         player = FindObjectOfType<PlayerController>();
+
+        // ターン表示UIの更新（例: ターン 1 / 10）
+        if (turnText != null)
+        {
+            turnText.text = $"ターン: {currentTurn} / {maxTurns}";
+        }
 
         cameraShake = FindObjectOfType<CameraShake>();
         if (cameraShake == null)
@@ -101,22 +110,25 @@ public class GameManager : MonoBehaviour
             doorObjects = foundDoors;
         }
 
-        // 部屋選択ボタンの自動配線
         SetupRoomButtons();
 
-        // ゲーム開始フェーズへ
         treasuresToSpawnNextTurn = initialSpawnCount;
         StartNextTurn();
     }
 
     void StartNextTurn()
     {
-        Debug.Log("★現在のターン数: " + currentTurn);
+        Debug.Log($"★現在のターン: {currentTurn} / 最大ターン: {maxTurns}");
+
+        // 画面のターンテキストを最新にする
+        if (turnText != null)
+        {
+            turnText.text = $"ターン: {currentTurn} / {maxTurns}";
+        }
 
         isSelectingRoom = true;
         isTimerRunning = false;
 
-        // UI（パネルとテキスト）を表示する
         if (selectionPanel != null) selectionPanel.SetActive(true);
         if (roleText != null)
         {
@@ -125,7 +137,6 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // ボタンから自動、または手動で呼ばれる
     public void OnRoomSelectedButton(int roomNumber)
     {
         if (!isSelectingRoom) return;
@@ -315,6 +326,8 @@ public class GameManager : MonoBehaviour
 
         if (currentTurn > maxTurns)
         {
+            // ★最大ターンを超えたら、次のゲームのために currentTurn を 1 にリセット！
+            currentTurn = 1;
             SceneManager.LoadScene("ResultScene");
         }
         else
@@ -355,7 +368,7 @@ public class GameManager : MonoBehaviour
 
     public void StartGameFromSelection()
     {
-        currentTurn = 1;
+        currentTurn = 1; // リセット
         playerTotalMoney = 0;
         hostMoney = 0;
         SceneManager.LoadScene("GameScene");
