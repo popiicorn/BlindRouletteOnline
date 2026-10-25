@@ -1,23 +1,23 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class PlayerSkin : MonoBehaviour
 {
-    public Renderer playerRenderer; // ƒLƒƒƒ‰ƒNƒ^[‚Ì‘ÌiMeshRendererj‚ğ‚±‚±‚Éƒhƒ‰ƒbƒO
-    public Color[] skinColors;      // ƒCƒ“ƒXƒyƒNƒ^[‚ÅD‚«‚ÈF‚ğ‘‚â‚µ‚Ä“o˜^
+    public Renderer playerRenderer; // ã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®ä½“ï¼ˆMeshRendererï¼‰ã‚’ã“ã“ã«ãƒ‰ãƒ©ãƒƒã‚°
+    public Color[] skinColors;      // ã‚¤ãƒ³ã‚¹ãƒšã‚¯ã‚¿ãƒ¼ã§å¥½ããªè‰²ã‚’å¢—ã‚„ã—ã¦ç™»éŒ²
 
     void Start()
     {
-        // ƒQ[ƒ€ŠJn‚É•Û‘¶‚³‚ê‚Ä‚¢‚éF‚ğ”½‰f
+        // ã‚²ãƒ¼ãƒ é–‹å§‹æ™‚ã«ä¿å­˜ã•ã‚Œã¦ã„ã‚‹è‰²ã‚’åæ˜ 
         ApplySavedColor();
     }
 
     public void ChangeColor(int index)
     {
-        // 1. F‚ğ•Û‘¶‚·‚é
+        // 1. è‰²ã‚’ä¿å­˜ã™ã‚‹
         PlayerPrefs.SetInt("PlayerColorIndex", index);
         PlayerPrefs.Save();
 
-        // 2. ‚·‚®‚ÉF‚ğ•Ï‚¦‚é
+        // 2. ã™ãã«è‰²ã‚’å¤‰ãˆã‚‹
         ApplySavedColor();
     }
 

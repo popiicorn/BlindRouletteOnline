@@ -1,15 +1,15 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class SmokeBomb : MonoBehaviour
 {
-    [Header("’n–Ê‚É’…‚¢‚½‚Éo‚·‰Œ‚ÌƒvƒŒƒnƒu")]
+    [Header("åœ°é¢ã«ç€ã„ãŸæ™‚ã«å‡ºã™ç…™ã®ãƒ—ãƒ¬ãƒãƒ–")]
     public GameObject smokeEffectPrefab;
 
     private bool isCarried = false;
     private bool isPlayerInRange = false;
     private Transform playerTransform;
     private Rigidbody rb;
-    private bool isThrown = false; // “Š‚°‚ç‚ê‚½‚©‚Ç‚¤‚©‚Ìƒtƒ‰ƒO
+    private bool isThrown = false; // æŠ•ã’ã‚‰ã‚ŒãŸã‹ã©ã†ã‹ã®ãƒ•ãƒ©ã‚°
 
     void Start()
     {
@@ -18,19 +18,19 @@ public class SmokeBomb : MonoBehaviour
 
     void Update()
     {
-        // ƒvƒŒƒCƒ„[‚ğ©“®‚ÅŒ©‚Â‚¯‚é
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã‚’è‡ªå‹•ã§è¦‹ã¤ã‘ã‚‹
         if (playerTransform == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
             if (playerObj != null) playerTransform = playerObj.transform;
         }
 
-        // “Š‚°‚éˆ—i‚Á‚Ä‚¢‚éó‘Ô‚ÅƒXƒy[ƒXƒL[j
+        // æŠ•ã’ã‚‹å‡¦ç†ï¼ˆæŒã£ã¦ã„ã‚‹çŠ¶æ…‹ã§ã‚¹ãƒšãƒ¼ã‚¹ã‚­ãƒ¼ï¼‰
         if (isCarried && Input.GetKeyDown(KeyCode.Space))
         {
             Drop();
         }
-        // E‚¤ˆ—i”ÍˆÍ“à‚É‚¢‚ÄƒXƒy[ƒXƒL[j
+        // æ‹¾ã†å‡¦ç†ï¼ˆç¯„å›²å†…ã«ã„ã¦ã‚¹ãƒšãƒ¼ã‚¹ã‚­ãƒ¼ï¼‰
         else if (!isCarried && isPlayerInRange && Input.GetKeyDown(KeyCode.Space))
         {
             if (playerTransform != null)
@@ -40,13 +40,13 @@ public class SmokeBomb : MonoBehaviour
         }
     }
 
-    // E‚¤ˆ—i•ó” ‚Ìd‘g‚İ‚ğ‚»‚Ì‚Ü‚Ü—¬—pj
+    // æ‹¾ã†å‡¦ç†ï¼ˆå®ç®±ã®ä»•çµ„ã¿ã‚’ãã®ã¾ã¾æµç”¨ï¼‰
     public void PickUp(Transform targetPlayer)
     {
         var pc = targetPlayer.GetComponent<PlayerController>();
         if (pc != null && pc.isHoldingTreasure)
         {
-            Debug.Log("Šù‚ÉƒAƒCƒeƒ€‚ğ‚Á‚Ä‚¢‚Ü‚·I");
+            Debug.Log("æ—¢ã«ã‚¢ã‚¤ãƒ†ãƒ ã‚’æŒã£ã¦ã„ã¾ã™ï¼");
             return;
         }
 
@@ -56,7 +56,7 @@ public class SmokeBomb : MonoBehaviour
         if (pc != null) pc.isHoldingTreasure = true;
         if (rb != null) rb.isKinematic = true;
 
-        // ƒvƒŒƒCƒ„[‚Æ‚ÌÕ“Ë‚ğ–³‹
+        // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ã¨ã®è¡çªã‚’ç„¡è¦–
         Collider playerCol = playerTransform.GetComponent<Collider>();
         foreach (Collider col in GetComponents<Collider>())
         {
@@ -67,11 +67,11 @@ public class SmokeBomb : MonoBehaviour
         transform.localPosition = new Vector3(0, 2.5f, 0);
     }
 
-    // “Š‚°‚éiDropjˆ—
+    // æŠ•ã’ã‚‹ï¼ˆDropï¼‰å‡¦ç†
     public void Drop()
     {
         isCarried = false;
-        isThrown = true; // u“Š‚°‚½vƒtƒ‰ƒO‚ğON
+        isThrown = true; // ã€ŒæŠ•ã’ãŸã€ãƒ•ãƒ©ã‚°ã‚’ON
 
         Transform player = transform.parent;
         if (player != null)
@@ -83,7 +83,7 @@ public class SmokeBomb : MonoBehaviour
                 pc.SetSpeedMultiplier(1.0f);
             }
 
-            // Õ“Ë–³‹‚ğ‰ğœ
+            // è¡çªç„¡è¦–ã‚’è§£é™¤
             Collider playerCol = player.GetComponent<Collider>();
             foreach (Collider col in GetComponents<Collider>())
             {
@@ -96,7 +96,7 @@ public class SmokeBomb : MonoBehaviour
         if (rb != null)
         {
             rb.isKinematic = false;
-            // ‘O•û‚É“Š‚°‚é—Í
+            // å‰æ–¹ã«æŠ•ã’ã‚‹åŠ›
             if (player != null)
             {
                 Vector3 throwDirection = player.forward * 5f + Vector3.up * 2f;
@@ -105,7 +105,7 @@ public class SmokeBomb : MonoBehaviour
         }
     }
 
-    // ƒvƒŒƒCƒ„[‚ª”ÍˆÍ‚É“ü‚Á‚½‚Ì”»’èiE‚¤—pj
+    // ãƒ—ãƒ¬ã‚¤ãƒ¤ãƒ¼ãŒç¯„å›²ã«å…¥ã£ãŸæ™‚ã®åˆ¤å®šï¼ˆæ‹¾ã†ç”¨ï¼‰
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag("Player"))
@@ -124,18 +124,18 @@ public class SmokeBomb : MonoBehaviour
         }
     }
 
-    // šy”š’e‚¾‚¯‚ÌV‹@”\z’n–Ê‚â•Ç‚É‚Ô‚Â‚©‚Á‚½uŠÔ
+    // â˜…ã€çˆ†å¼¾ã ã‘ã®æ–°æ©Ÿèƒ½ã€‘åœ°é¢ã‚„å£ã«ã¶ã¤ã‹ã£ãŸç¬é–“
     void OnCollisionEnter(Collision collision)
     {
-        if (isThrown) // “Š‚°‚ç‚ê‚½Œã‚È‚ç
+        if (isThrown) // æŠ•ã’ã‚‰ã‚ŒãŸå¾Œãªã‚‰
         {
-            // ‰Œ‚ÌƒGƒtƒFƒNƒg‚ğ¶¬
+            // ç…™ã®ã‚¨ãƒ•ã‚§ã‚¯ãƒˆã‚’ç”Ÿæˆ
             if (smokeEffectPrefab != null)
             {
                 Instantiate(smokeEffectPrefab, transform.position, Quaternion.identity);
             }
 
-            // ”š’e–{‘Ì‚ğÁ‚·
+            // çˆ†å¼¾æœ¬ä½“ã‚’æ¶ˆã™
             Destroy(gameObject);
         }
     }

@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class TreasureRoomSensor : MonoBehaviour
 {
@@ -6,13 +6,13 @@ public class TreasureRoomSensor : MonoBehaviour
 
     void Start()
     {
-        // ei•ó” –{‘Ìj‚É‚ ‚éTreasureBoxƒXƒNƒŠƒvƒg‚ğ’T‚·
+        // è¦ªï¼ˆå®ç®±æœ¬ä½“ï¼‰ã«ã‚ã‚‹TreasureBoxã‚¹ã‚¯ãƒªãƒ—ãƒˆã‚’æ¢ã™
         parentBox = GetComponentInParent<TreasureBox>();
     }
 
     void OnTriggerEnter(Collider other)
     {
-        // •”‰®‚É“ü‚Á‚½
+        // éƒ¨å±‹ã«å…¥ã£ãŸæ™‚
         RoomDetector room = other.GetComponent<RoomDetector>();
         if (room != null && parentBox != null)
         {
@@ -22,11 +22,11 @@ public class TreasureRoomSensor : MonoBehaviour
 
     void OnTriggerExit(Collider other)
     {
-        // •”‰®‚©‚ço‚½
+        // éƒ¨å±‹ã‹ã‚‰å‡ºãŸæ™‚
         RoomDetector room = other.GetComponent<RoomDetector>();
         if (room != null && parentBox != null)
         {
-            // Œ»İ‚Ì•”‰®‚©‚ço‚½‚çƒƒr[i0j‚É–ß‚·
+            // ç¾åœ¨ã®éƒ¨å±‹ã‹ã‚‰å‡ºãŸã‚‰ãƒ­ãƒ“ãƒ¼ï¼ˆ0ï¼‰ã«æˆ»ã™
             if (parentBox.currentRoom == room.roomNumber)
             {
                 parentBox.UpdateRoom(0);

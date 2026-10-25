@@ -1,11 +1,11 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class Door : MonoBehaviour
 {
-    [Header("‚±‚Ì”à‚ª’S“–‚·‚é•”‰®”Ô†")]
+    [Header("ã“ã®æ‰‰ãŒæ‹…å½“ã™ã‚‹éƒ¨å±‹ç•ªå·")]
     public int roomNumber;
 
-    // Animator‚ğ‚±‚±‚É‚½‚¹‚Ä‚¨‚­
+    // Animatorã‚’ã“ã“ã«æŒãŸã›ã¦ãŠã
     private Animator anim;
 
     void Awake()
@@ -13,19 +13,19 @@ public class Door : MonoBehaviour
         anim = GetComponentInChildren<Animator>();
     }
 
-    // ”à‚Ìó‘Ô‚ğXV‚·‚éŠÖ”
+    // æ‰‰ã®çŠ¶æ…‹ã‚’æ›´æ–°ã™ã‚‹é–¢æ•°
     public void SetDoorClosed(bool isClosed)
     {
-        // 1. Animator‚ÉuClosedvƒpƒ‰ƒ[ƒ^‚ğ“n‚·
+        // 1. Animatorã«ã€ŒClosedã€ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ã‚’æ¸¡ã™
         if (anim != null)
         {
             anim.SetBool("Closed", isClosed);
         }
 
-        // 2. ‚à‚µƒAƒjƒ[ƒVƒ‡ƒ“ŠJn‚Ì‡}iTriggerj‚à•K—v‚È‚ç‚±‚±‚ÅŒÄ‚Ô
+        // 2. ã‚‚ã—ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³é–‹å§‹ã®åˆå›³ï¼ˆTriggerï¼‰ã‚‚å¿…è¦ãªã‚‰ã“ã“ã§å‘¼ã¶
         if (isClosed)
         {
-            anim.SetTrigger("Close"); // •Â‚ß‚é‡}
+            anim.SetTrigger("Close"); // é–‰ã‚ã‚‹åˆå›³
         }
     }
 }

@@ -1,23 +1,23 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.SceneManagement;
 
 public class SceneChanger : MonoBehaviour
 {
-    // ’Êí‚ÌƒV[ƒ“ˆÚ“®
+    // é€šå¸¸ã®ã‚·ãƒ¼ãƒ³ç§»å‹•
     public void LoadScene(string sceneName)
     {
         SceneManager.LoadScene(sceneName);
     }
 
-    // š’Ç‰ÁFƒŠƒUƒ‹ƒg‰æ–Ê‚È‚Ç‚©‚çuƒf[ƒ^‚ğƒŠƒZƒbƒg‚µ‚ÄvƒV[ƒ“ˆÚ“®‚µ‚½‚¢‚Æ‚«—p
+    // â˜…è¿½åŠ ï¼šãƒªã‚¶ãƒ«ãƒˆç”»é¢ãªã©ã‹ã‚‰ã€Œãƒ‡ãƒ¼ã‚¿ã‚’ãƒªã‚»ãƒƒãƒˆã—ã¦ã€ã‚·ãƒ¼ãƒ³ç§»å‹•ã—ãŸã„ã¨ãç”¨
     public void LoadSceneAndResetData(string sceneName)
     {
-        // Ÿ‚ÌƒQ[ƒ€‚Ì‚½‚ß‚É‚·‚×‚Ä‰Šú‰»
+        // æ¬¡ã®ã‚²ãƒ¼ãƒ ã®ãŸã‚ã«ã™ã¹ã¦åˆæœŸåŒ–
         GameManager.playerTotalMoney = 0;
         GameManager.hostMoney = 0;
         GameManager.currentTurn = 1;
 
-        // ƒV[ƒ“‚ğˆÚ“®
+        // ã‚·ãƒ¼ãƒ³ã‚’ç§»å‹•
         SceneManager.LoadScene(sceneName);
     }
 }

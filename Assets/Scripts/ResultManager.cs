@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
 
@@ -8,22 +8,22 @@ public class ResultManager : MonoBehaviour
 
     void Start()
     {
-        // GameManager.playerTotalMoney ‚©‚ç’¼ÚA‰Ò‚¢‚¾‹àŠz‚ğæ“¾‚·‚éI
+        // GameManager.playerTotalMoney ã‹ã‚‰ç›´æ¥ã€ç¨¼ã„ã é‡‘é¡ã‚’å–å¾—ã™ã‚‹ï¼
         int finalMoney = GameManager.playerTotalMoney;
 
         if (resultText != null)
         {
-            resultText.text = $"¡‰ñ‚ÌŠl“¾‹àŠz: {finalMoney.ToString("#,0")}‰~";
+            resultText.text = $"ä»Šå›ã®ç²å¾—é‡‘é¡: {finalMoney.ToString("#,0")}å††";
         }
         else
         {
-            Debug.LogWarning("ResultText ‚ªƒAƒ^ƒbƒ`‚³‚ê‚Ä‚¢‚Ü‚¹‚ñI");
+            Debug.LogWarning("ResultText ãŒã‚¢ã‚¿ãƒƒãƒã•ã‚Œã¦ã„ã¾ã›ã‚“ï¼");
         }
     }
 
     public void GoToTitle()
     {
-        // ƒ^ƒCƒgƒ‹‚É–ß‚é‚Æ‚«‚Éƒf[ƒ^‚ğƒŠƒZƒbƒg
+        // ã‚¿ã‚¤ãƒˆãƒ«ã«æˆ»ã‚‹ã¨ãã«ãƒ‡ãƒ¼ã‚¿ã‚’ãƒªã‚»ãƒƒãƒˆ
         GameManager.currentTurn = 1;
         GameManager.playerTotalMoney = 0;
         GameManager.hostMoney = 0;
